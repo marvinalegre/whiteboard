@@ -1,0 +1,10 @@
+:4000 {
+    handle_path /api/* {
+        reverse_proxy localhost:4001
+    }
+
+    handle {
+        root * ./public
+        file_server
+    }
+}
