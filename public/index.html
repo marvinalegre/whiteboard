@@ -3,45 +3,33 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Whiteboard.com | Share Your Thought</title>
+    <title>Whiteboard.com</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      body {
-        background-color: #f8f9fa;
-      }
-      .post-card {
-        transition: transform 0.2s;
-      }
-      .post-card:hover {
-        transform: translateY(-5px);
-      }
-    </style>
   </head>
-  <body class="min-h-screen p-4 md:p-8">
+  <body class="bg-slate-50 min-h-screen p-4 md:p-8">
     <div class="max-w-4xl mx-auto">
       <header class="text-center mb-10">
-        <h1 class="text-4xl font-bold text-slate-800 mb-2">Whiteboard.com</h1>
-        <p class="text-slate-600">
-          Anything goes, as long as it's under 300 characters.
-        </p>
+        <h1 class="text-4xl font-bold text-slate-800">Whiteboard.com</h1>
+        <p class="text-slate-500">Public board • Max 300 characters</p>
       </header>
 
-      <div class="bg-white rounded-xl shadow-md p-6 mb-10">
+      <div
+        class="bg-white rounded-xl shadow-sm p-6 mb-10 border border-slate-200"
+      >
         <textarea
           id="postInput"
           maxlength="300"
           rows="3"
-          placeholder="What's on your mind?"
-          class="w-full p-4 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none text-lg"
+          placeholder="Write something..."
+          class="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none text-lg"
         ></textarea>
-
         <div class="flex justify-between items-center mt-4">
-          <span id="charCount" class="text-sm text-slate-500">0 / 300</span>
+          <span id="charCount" class="text-sm text-slate-400">0 / 300</span>
           <button
-            onclick="addPost()"
-            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-200"
+            onclick="savePost()"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition"
           >
-            Post to Board
+            Post
           </button>
         </div>
       </div>
@@ -50,75 +38,70 @@
     </div>
 
     <script>
+      const API_URL = 'http://localhost:4000/api/posts';
       const postInput = document.getElementById('postInput');
-      const charCount = document.getElementById('charCount');
       const board = document.getElementById('board');
 
-      // Update character counter
+      // Initial Load
+      window.onload = fetchPosts;
+
+      // Character Counter
       postInput.addEventListener('input', () => {
-        charCount.textContent = `${postInput.value.length} / 300`;
+        document.getElementById('charCount').textContent =
+          `${postInput.value.length} / 300`;
       });
 
-      // Load existing posts from LocalStorage
-      window.onload = () => {
-        const savedPosts =
-          JSON.parse(localStorage.getItem('whiteboard_posts')) || [];
-        savedPosts.forEach((post) => renderPost(post.text, post.date));
-      };
-
-      function addPost() {
-        const text = postInput.value.trim();
-        if (text === '') return;
-
-        const date =
-          new Date().toLocaleDateString() +
-          ' ' +
-          new Date().toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-          });
-
-        // Save to LocalStorage
-        const savedPosts =
-          JSON.parse(localStorage.getItem('whiteboard_posts')) || [];
-        savedPosts.unshift({ text, date });
-        localStorage.setItem('whiteboard_posts', JSON.stringify(savedPosts));
-
-        // Render on UI
-        renderPost(text, date, true);
-
-        // Clear input
-        postInput.value = '';
-        charCount.textContent = '0 / 300';
+      async function fetchPosts() {
+        try {
+          const res = await fetch(API_URL);
+          const posts = await res.json();
+          board.innerHTML = ''; // Clear board
+          posts.forEach((post) => renderPost(post));
+        } catch (err) {
+          console.error('Failed to load posts:', err);
+        }
       }
 
-      function renderPost(text, date, isNew = false) {
-        // 1. Create the container
-        const container = document.createElement('div');
-        container.className =
-          'post-card bg-white p-6 rounded-lg shadow border-l-4 border-blue-500';
+      async function savePost() {
+        const content = postInput.value.trim();
+        if (!content) return;
 
-        // 2. Create the text element and use .textContent (Escapes HTML)
-        const content = document.createElement('p');
-        content.className =
-          'text-slate-800 text-lg mb-4 break-words font-medium italic';
-        content.textContent = `"${text}"`;
+        try {
+          const res = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content }),
+          });
 
-        // 3. Create the date element
-        const dateEl = document.createElement('div');
-        dateEl.className =
-          'text-xs text-slate-400 font-mono uppercase tracking-widest';
-        dateEl.textContent = date;
-
-        // 4. Assemble and inject
-        container.appendChild(content);
-        container.appendChild(dateEl);
-
-        if (isNew) {
-          board.prepend(container);
-        } else {
-          board.appendChild(container);
+          if (res.ok) {
+            postInput.value = '';
+            document.getElementById('charCount').textContent = '0 / 300';
+            fetchPosts(); // Refresh board
+          } else {
+            alert('Failed to post. Check character limit.');
+          }
+        } catch (err) {
+          console.error('API Error:', err);
         }
+      }
+
+      function renderPost(post) {
+        const card = document.createElement('div');
+        card.className =
+          'bg-white p-6 rounded-lg shadow-sm border-l-4 border-blue-500';
+
+        // XSS PROTECTION: Using textContent for user input
+        const p = document.createElement('p');
+        p.className = 'text-slate-800 text-lg mb-4 break-words italic';
+        p.textContent = `"${post.content}"`;
+
+        const time = document.createElement('div');
+        time.className = 'text-xs text-slate-400 font-mono';
+        time.textContent = post.created_at;
+
+        card.appendChild(p);
+        card.appendChild(time);
+        board.appendChild(card);
       }
     </script>
   </body>
