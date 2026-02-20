@@ -1,0 +1,17 @@
+services:
+  whiteboard:
+    build:
+      context: ./
+      target: dev
+    ports:
+      - 80:4001
+    develop:
+      watch:
+        - path: ./src
+          action: sync
+          target: /usr/local/app/src
+        - path: ./public
+          action: sync
+          target: /usr/local/app/public
+        - path: ./package.json
+          action: rebuild

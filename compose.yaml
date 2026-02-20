@@ -1,0 +1,5 @@
+services:
+  whiteboard:
+    container_name: whiteboard
+    volumes:
+      - /var/lib/whiteboard:/var/lib/whiteboard

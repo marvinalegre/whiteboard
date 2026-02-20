@@ -1,0 +1,19 @@
+services:
+  whiteboard:
+    build:
+      context: ./
+      target: final
+    environment:
+      NODE_ENV: production
+    restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whiteboard.rule=Host(`whiteboard.testingg.bid`)"
+      - "traefik.http.routers.whiteboard.entrypoints=websecure"
+      - "traefik.http.routers.whiteboard.tls.certresolver=myresolver"
+    networks:
+      - web-traffic
+
+networks:
+  web-traffic:
+    external: true

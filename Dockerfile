@@ -1,4 +1,7 @@
 FROM node:24 AS base
+RUN addgroup -S whiteboard && adduser -S whiteboard -G whiteboard
+RUN mkdir -p /var/lib/whiteboard && chown whiteboard:whiteboard /var/lib/whiteboard
+USER whiteboard
 WORKDIR /usr/local/app
 COPY package.json package-lock.json ./
 RUN npm install
@@ -17,5 +20,4 @@ RUN npm ci --production && \
     npm cache clean --force
 COPY --from=build /usr/local/app/dist ./dist
 COPY public ./public
-EXPOSE 4001
 CMD ["npm", "run", "start:prod"]
