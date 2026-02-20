@@ -11,6 +11,7 @@ services:
       - "traefik.http.routers.whiteboard.rule=Host(`whiteboard.testingg.bid`)"
       - "traefik.http.routers.whiteboard.entrypoints=websecure"
       - "traefik.http.routers.whiteboard.tls.certresolver=myresolver"
+      - "traefik.http.services.whiteboard.loadbalancer.server.port=4001"
     networks:
       - web-traffic
 

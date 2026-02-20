@@ -1,7 +1,5 @@
 FROM node:24 AS base
-RUN addgroup -S whiteboard && adduser -S whiteboard -G whiteboard
-RUN mkdir -p /var/lib/whiteboard && chown whiteboard:whiteboard /var/lib/whiteboard
-USER whiteboard
+RUN mkdir /var/lib/whiteboard
 WORKDIR /usr/local/app
 COPY package.json package-lock.json ./
 RUN npm install
