@@ -7,7 +7,7 @@ export class DatabaseService implements OnModuleInit {
 
   onModuleInit() {
     // Open the connection
-    this.db = new Database('whiteboard.db');
+    this.db = new Database('/var/lib/whiteboard/whiteboard.db');
 
     // Performance optimization for SQLite
     this.db.pragma('journal_mode = WAL');
