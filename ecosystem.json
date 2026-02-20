@@ -1,9 +1,0 @@
-{
-  "apps": [
-    {
-      "name": "whiteboard",
-      "script": "pnpm",
-      "args": "start:prod"
-    }
-  ]
-}
