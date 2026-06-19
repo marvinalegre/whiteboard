@@ -24,7 +24,10 @@
 			"database_name": "whiteboard",
 			"database_id": "99f7129e-b514-4279-be20-ef329f299a37"
 		}
-	]
+	],
+	"triggers": {
+		"crons": ["0 * * * *"]
+	}
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement

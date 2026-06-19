@@ -7,7 +7,7 @@ export default {
         switch (request.method) {
           case 'GET':
             const { results: posts } = await env.DB.prepare('select content, created_at from posts order by created_at desc').all();
-            console.log(posts);
+
             return Response.json(posts);
 
           case 'POST': {
@@ -27,5 +27,14 @@ export default {
       default:
         return new Response('Not Found', { status: 404 });
     }
+  },
+
+  async scheduled(event, env, ctx) {
+    await env.DB.prepare(
+      `
+    DELETE FROM posts
+    WHERE datetime(created_at) < datetime('now', '-1 day')
+  `,
+    ).run();
   },
 };
