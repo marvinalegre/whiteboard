@@ -1,15 +1,31 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
-
 export default {
-	async fetch(request, env, ctx) {
-		return new Response("Hello World!");
-	},
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+
+    switch (url.pathname) {
+      case '/posts':
+        switch (request.method) {
+          case 'GET':
+            const { results: posts } = await env.DB.prepare('select content, created_at from posts order by created_at desc').all();
+            console.log(posts);
+            return Response.json(posts);
+
+          case 'POST': {
+            const body = await request.json();
+
+            await env.DB.prepare('insert into posts (content) values (?)').bind(body.content).run();
+
+            return Response.json({ success: true }, { status: 201 });
+          }
+
+          default:
+            return new Response('Method Not Allowed', {
+              status: 405,
+            });
+        }
+
+      default:
+        return new Response('Not Found', { status: 404 });
+    }
+  },
 };
