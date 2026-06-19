@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Whiteboard.com</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-slate-50 min-h-screen p-4 md:p-8">
+    <div class="max-w-4xl mx-auto">
+      <header class="text-center m-10">
+        <h1 class="text-4xl font-medium text-slate-800">whiteboard</h1>
+      </header>
+
+      <div class="bg-white rounded-xl shadow-sm p-6 mb-10 border border-slate-200">
+        <textarea
+          id="postInput"
+          maxlength="300"
+          rows="3"
+          placeholder="Write something..."
+          class="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none text-lg"
+        ></textarea>
+        <div class="flex justify-between items-center mt-4">
+          <span id="charCount" class="text-sm text-slate-400">0 / 300</span>
+          <button onclick="savePost()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition">
+            Post
+          </button>
+        </div>
+      </div>
+
+      <div id="board" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+    </div>
+
+    <script>
+      const postInput = document.getElementById('postInput');
+      const board = document.getElementById('board');
+
+      // Initial Load
+      window.onload = fetchPosts;
+
+      // Character Counter
+      postInput.addEventListener('input', () => {
+        document.getElementById('charCount').textContent = `${postInput.value.length} / 300`;
+      });
+
+      async function fetchPosts() {
+        try {
+          const res = await fetch('/posts');
+          const posts = await res.json();
+          board.innerHTML = ''; // Clear board
+          posts.forEach((post) => renderPost(post));
+        } catch (err) {
+          console.error('Failed to load posts:', err);
+        }
+      }
+
+      async function savePost() {
+        const content = postInput.value.trim();
+        if (!content) return;
+
+        try {
+          const res = await fetch('/posts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content }),
+          });
+
+          if (res.ok) {
+            postInput.value = '';
+            document.getElementById('charCount').textContent = '0 / 300';
+            fetchPosts(); // Refresh board
+          } else {
+            alert('Failed to post.');
+          }
+        } catch (err) {
+          console.error('API Error:', err);
+        }
+      }
+
+      function renderPost(post) {
+        const card = document.createElement('div');
+        card.className = 'bg-white p-6 rounded-lg shadow-sm border-l-4 border-blue-500';
+
+        // XSS PROTECTION: Using textContent for user input
+        const p = document.createElement('p');
+        p.className = 'text-slate-800 text-lg mb-4 break-words italic whitespace-pre-wrap';
+        p.textContent = `"${post.content}"`;
+
+        const time = document.createElement('div');
+        time.className = 'text-xs text-slate-400 font-mono';
+        function formatRelativeTime(dateString) {
+          const now = new Date();
+          const postDate = new Date(dateString + 'Z');
+          const diffInSeconds = Math.floor((now - postDate) / 1000);
+
+          if (diffInSeconds < 60) {
+            return 'Just now';
+          }
+
+          const diffInMinutes = Math.floor(diffInSeconds / 60);
+          if (diffInMinutes < 60) {
+            return `${diffInMinutes}m`;
+          }
+
+          const diffInHours = Math.floor(diffInMinutes / 60);
+          if (diffInHours < 24) {
+            return `${diffInHours}h`;
+          }
+
+          const diffInDays = Math.floor(diffInHours / 24);
+          if (diffInDays < 7) {
+            return `${diffInDays}d`;
+          }
+
+          // If older than a week, show the date in PH format
+          return postDate.toLocaleDateString('en-PH', {
+            month: 'short',
+            day: 'numeric',
+          });
+        }
+
+        // Usage:
+        time.textContent = formatRelativeTime(post.created_at);
+
+        card.appendChild(p);
+        card.appendChild(time);
+        board.appendChild(card);
+      }
+    </script>
+  </body>
+</html>
