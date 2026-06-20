@@ -1,0 +1,94 @@
+const postInput = document.getElementById('postInput');
+const board = document.getElementById('board');
+
+// Initial Load
+window.onload = fetchPosts;
+
+// Character Counter
+postInput.addEventListener('input', () => {
+  document.getElementById('charCount').textContent = `${postInput.value.length} / 300`;
+});
+
+async function fetchPosts() {
+  try {
+    const res = await fetch('/posts');
+    const posts = await res.json();
+    board.innerHTML = ''; // Clear board
+    posts.forEach((post) => renderPost(post));
+  } catch (err) {
+    console.error('Failed to load posts:', err);
+  }
+}
+
+async function savePost() {
+  const content = postInput.value.trim();
+  if (!content) return;
+
+  try {
+    const res = await fetch('/posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content }),
+    });
+
+    if (res.ok) {
+      postInput.value = '';
+      document.getElementById('charCount').textContent = '0 / 300';
+      fetchPosts(); // Refresh board
+    } else {
+      alert('Failed to post.');
+    }
+  } catch (err) {
+    console.error('API Error:', err);
+  }
+}
+
+function renderPost(post) {
+  const card = document.createElement('div');
+  card.className = 'bg-white p-6 rounded-lg shadow-sm border-l-4 border-blue-500';
+
+  // XSS PROTECTION: Using textContent for user input
+  const p = document.createElement('p');
+  p.className = 'text-slate-800 text-lg mb-4 break-words italic whitespace-pre-wrap';
+  p.textContent = `"${post.content}"`;
+
+  const time = document.createElement('div');
+  time.className = 'text-xs text-slate-400 font-mono';
+  function formatRelativeTime(dateString) {
+    const now = new Date();
+    const postDate = new Date(dateString + 'Z');
+    const diffInSeconds = Math.floor((now - postDate) / 1000);
+
+    if (diffInSeconds < 60) {
+      return 'Just now';
+    }
+
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes}m`;
+    }
+
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) {
+      return `${diffInHours}h`;
+    }
+
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) {
+      return `${diffInDays}d`;
+    }
+
+    // If older than a week, show the date in PH format
+    return postDate.toLocaleDateString('en-PH', {
+      month: 'short',
+      day: 'numeric',
+    });
+  }
+
+  // Usage:
+  time.textContent = formatRelativeTime(post.created_at);
+
+  card.appendChild(p);
+  card.appendChild(time);
+  board.appendChild(card);
+}
