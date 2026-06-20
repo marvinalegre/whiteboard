@@ -3,43 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="index.css" />
     <title>Whiteboard.com</title>
-    <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body class="bg-slate-50 min-h-screen p-4 md:p-8">
-    <div class="max-w-4xl mx-auto min-h-screen">
-      <header class="text-center m-10">
-        <h1 class="text-4xl font-medium text-slate-800">whiteboard</h1>
+  <body>
+    <main>
+      <header>
+        <h1>whiteboard</h1>
       </header>
 
-      <div class="bg-white rounded-xl shadow-sm p-6 mb-10 border border-slate-200">
-        <textarea
-          id="postInput"
-          maxlength="300"
-          rows="3"
-          placeholder="Write something..."
-          class="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none text-lg"
-        ></textarea>
-        <div class="flex justify-between items-center mt-4">
-          <span id="charCount" class="text-sm text-slate-400">0 / 300</span>
-          <button onclick="savePost()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition">
-            Post
-          </button>
+      <div>
+        <textarea id="postInput" maxlength="300" rows="3" placeholder="Write something..."></textarea>
+        <div>
+          <span id="charCount">0 / 300</span>
+          <button onclick="savePost()">Post</button>
         </div>
       </div>
 
-      <div id="board" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
-    </div>
+      <div id="board"></div>
+    </main>
 
-    <footer class="py-6 text-center text-sm text-gray-500 opacity-50">
-      <a
-        href="https://github.com/marvinalegre/whiteboard"
-        target="_blank"
-        class="hover:opacity-100 transition-opacity underline underline-offset-2"
-      >
-        source code
-      </a>
+    <footer>
+      <a href="https://github.com/marvinalegre/whiteboard" target="_blank">source code</a>
     </footer>
+
     <script>
       const postInput = document.getElementById('postInput');
       const board = document.getElementById('board');
